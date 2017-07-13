@@ -83,6 +83,8 @@ class Prophet(object):
             n_changepoints=25,
             yearly_seasonality='auto',
             weekly_seasonality='auto',
+            test_seasonality='auto',
+            test_period=1.0,
             holidays=None,
             seasonality_prior_scale=10.0,
             holidays_prior_scale=10.0,
@@ -101,7 +103,7 @@ class Prophet(object):
 
         self.yearly_seasonality = yearly_seasonality
         self.weekly_seasonality = weekly_seasonality
-
+        self.test_seasonality =   test_seasonality
         if holidays is not None:
             if not (
                 isinstance(holidays, pd.DataFrame)
@@ -123,6 +125,7 @@ class Prophet(object):
 
         # Set during fitting
         self.start = None
+        self.test_period = float(test_period)
         self.y_scale = None
         self.t_scale = None
         self.changepoints_t = None
@@ -352,6 +355,13 @@ class Prophet(object):
         ]
 
         # Seasonality features
+        if self.test_seasonality:
+            seasonal_features.append(self.make_seasonality_features(
+                df['ds'],
+                365.25 * self.test_period,
+                10,
+                'test',
+            ))
         if self.yearly_seasonality:
             seasonal_features.append(self.make_seasonality_features(
                 df['ds'],
